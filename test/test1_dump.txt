@@ -1,0 +1,165 @@
+#include "main.h"
+#include "GPIO.h"
+
+#define pad 5
+
+void DMA2_Stream3_IRQHandler(void)
+{
+	if(DMA2->LISR & DMA_LISR_TCIF3)
+	{
+//		TIM1->CR1 &= ~TIM_CR1_CEN;
+	}
+}
+
+//uint16_t array[64] = {134,134,134,134,134,134,134,134,
+//					 67,67,67,67,67,67,67,67,
+//					 67,67,67,67,67,67,67,67,
+//					0,0,0,0,0,0,0,0,
+//					0,0,0,0,0,0,0,0,
+//					0,0,0,0,0,0,0,0,
+//					0,0,0,0,0,0,0,0,
+//					0,0,0,0,0,0,0,0};
+//
+//uint16_t array1[64];
+//
+//
+//
+//uint32_t swap_uint32( uint32_t val )
+//{
+//    val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF );
+//    return (val << 16) | (val >> 16);
+//}
+//
+//uint16_t swap_uint16( uint16_t val )
+//{
+//    return (val << 8) | (val >> 8 );
+//}
+
+uint32_t array[24+8*pad];
+
+uint16_t high = 134;
+uint16_t low = 67;
+
+void led_color(uint8_t red, uint8_t green, uint8_t blue)
+{
+	uint32_t color = green << 16 | red << 8 | blue << 0;
+	for(int i = 24 ; i >= 0; i--)
+	{
+		if(color & (1 << i))
+		{
+			array[i] = high;
+		}
+		else
+		{
+			array[i] = low;
+		}
+	}
+
+}
+
+int main(void)
+{
+
+
+
+
+
+
+
+//	led_color(0xAA, 0xBB, 0xCC);
+
+	uint32_t packet = 0xAA << 16 | 0xBB << 8 | 0xCC;
+
+	for(int i = 23; i >= 0; i--)
+	{
+		if(packet%2 == 0)array[i] = 67;
+		if(packet%2 == 1)array[i] = 134;
+		packet = packet << 1;
+	}
+
+	for(int i = 24; i < (24+8*pad); i++)
+	{
+		array[i] = 0;
+	}
+
+
+	MCU_Clock_Setup();
+	Delay_Config();
+
+
+	RCC -> APB2ENR |= RCC_APB2ENR_TIM1EN;
+
+	GPIO_Pin_Init(GPIOA, 8, MODE.Alternate_Function, Output_Type.Push_Pull, Speed.High_Speed, Pull.No_Pull_Up_Down, Alternate_Functions.TIM_1);
+
+	TIM1 ->PSC = 0;
+	TIM1 -> ARR = 210;
+	TIM1 -> CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1;
+	TIM1 -> CCMR1 |= TIM_CCMR1_OC1PE;
+	TIM1 -> BDTR |= TIM_BDTR_BKP | TIM_BDTR_MOE;
+	TIM1 -> CCER |= TIM_CCER_CC1E;
+//	TIM1 -> EGR |= TIM_EGR_UG;
+//	TIM1 -> CCR1  = 134;
+	TIM1 -> DIER = TIM_DIER_CC1DE;
+
+//	TIM1 -> DMAR = 1;
+//
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+
+    // Disable DMA Stream 2 for Channel 6 (TIM1_CH1)
+    DMA2_Stream3->CR &= ~DMA_SxCR_EN;
+
+
+    DMA2_Stream3 -> CR |= 6 <<DMA_SxCR_CHSEL_Pos;
+    DMA2_Stream3 -> CR |= DMA_SxCR_CIRC;
+    DMA2_Stream3 -> CR |= DMA_SxCR_TCIE;
+    DMA2_Stream3 -> CR |= DMA_SxCR_DIR_0;
+    DMA2_Stream3 -> CR |= DMA_SxCR_PSIZE_0;
+    DMA2_Stream3 -> CR |= DMA_SxCR_MSIZE_0;
+    DMA2_Stream3 -> CR |= DMA_SxCR_PL;
+//    DMA2_Stream1 -> CR |= DMA_SxCR_PFCTRL;
+    DMA2_Stream3 -> CR |= DMA_SxCR_MINC;
+    DMA2_Stream3 -> CR |= DMA_SxCR_TCIE;
+
+
+//    DMA2_Stream1->CR = 0xC032C70;
+    // Configure peripheral data register address
+    DMA2_Stream3->PAR = (uint32_t) &TIM1->CCR1;
+
+    // Configure memory data register address
+    DMA2_Stream3->M0AR = (uint32_t)&array[0];
+
+    // Configure the number of data items to transfer
+    DMA2_Stream3->NDTR = (uint16_t)(24+8*pad);
+//
+//
+//    // Enable DMA Stream 2
+
+    NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+//
+    TIM1->CR1 |= TIM_CR1_CEN;
+	DMA2_Stream3->CR |= DMA_SxCR_EN;
+//	while((DMA2_Stream3 -> CR & DMA_SxCR_EN ));
+
+
+
+
+
+
+
+
+
+
+
+
+    /* Loop forever */
+	for(;;)
+	{
+
+////		Delay_ms(50);
+//		for(int32_t i = 0; i < 100; i++)
+//		{
+//			i= i+1;
+//		}
+
+	}
+}
