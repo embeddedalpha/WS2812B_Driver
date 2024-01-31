@@ -1,3 +1,4 @@
+"./DMA/DMA.o"
 "./GPIO/GPIO.o"
 "./Src/main.o"
 "./Src/syscalls.o"

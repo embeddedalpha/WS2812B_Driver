@@ -12,6 +12,7 @@ RM := rm -rf
 -include Startup/subdir.mk
 -include Src/subdir.mk
 -include GPIO/subdir.mk
+-include DMA/subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)

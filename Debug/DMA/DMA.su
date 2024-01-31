@@ -1,0 +1,6 @@
+../DMA/DMA.c:12:6:DMA_Clock_Enable	16	static
+../DMA/DMA.c:19:6:DMA_Clock_Disable	16	static
+../DMA/DMA.c:27:6:DMA_Reset	16	static
+../DMA/DMA.c:34:6:DMA_Init	16	static
+../DMA/DMA.c:48:6:DMA_Set_Target	16	static
+../DMA/DMA.c:128:6:DMA_Set_Trigger	16	static
